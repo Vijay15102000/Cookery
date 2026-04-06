@@ -1,8 +1,8 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Karnataka Culinary</title>
 
 <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
@@ -10,67 +10,39 @@
 <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
 
 <style>
-body { margin:0; font-family:Arial; }
+body{margin:0;font-family:Arial;background:white}
 
-/* NAVBAR */
-.navbar{
-display:flex; justify-content:space-between;
-padding:15px; background:white;
-position:fixed; width:100%; z-index:1000;
-box-shadow:0 2px 5px rgba(0,0,0,0.1);
-}
-.menu{ display:flex; gap:15px; }
-.hamburger{ display:none; cursor:pointer; }
+/* NAV */
+.nav{display:flex;justify-content:space-between;padding:15px;background:#fff;
+position:fixed;width:100%;z-index:1000;box-shadow:0 2px 5px #ccc}
+.menu{display:flex;gap:15px}
+.ham{display:none}
 
 @media(max-width:768px){
-.menu{ display:none; }
-.hamburger{ display:block; }
-.mobile-menu{
-position:fixed; right:0; top:0;
-width:70%; height:100%;
-background:white; padding:20px;
-}
+.menu{display:none}
+.ham{display:block}
+.mobile{position:fixed;right:0;top:0;width:70%;height:100%;background:#fff;padding:20px}
 }
 
 /* HERO */
-.hero{ height:100vh; position:relative; }
-.hero video{ width:100%; height:100%; object-fit:cover; }
-.hero-text{
-position:absolute; right:20px; top:40%;
-color:white; font-size:60px;
-animation:shrink 5s forwards;
-}
-@keyframes shrink{
-from{font-size:60px;}
-to{font-size:25px;}
-}
+.hero{height:100vh;position:relative}
+.hero video{width:100%;height:100%;object-fit:cover}
+.text{position:absolute;right:20px;top:40%;color:white;font-size:60px;
+animation:shrink 5s forwards}
+@keyframes shrink{from{font-size:60px}to{font-size:25px}}
+
+/* SECTION */
+section{padding:80px 20px}
 
 /* CARDS */
-.cards{
-display:grid;
-grid-template-columns:repeat(auto-fit,minmax(250px,1fr));
-gap:20px;
-}
-.card{
-border:1px solid #ddd;
-cursor:pointer;
-overflow:hidden;
-}
-.card img, .card video{
-width:100%; height:150px; object-fit:cover;
-}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:20px}
+.card{border:1px solid #ddd;cursor:pointer;overflow:hidden}
+.card img,.card video{width:100%;height:150px;object-fit:cover}
 
 /* MODAL */
-.modal{
-position:fixed; top:0; left:0;
-width:100%; height:100%;
-background:rgba(0,0,0,0.5);
-display:flex; justify-content:center; align-items:center;
-}
-.modal-content{
-background:white; padding:20px;
-width:90%; max-height:90%; overflow:auto;
-}
+.modal{position:fixed;top:0;left:0;width:100%;height:100%;
+background:rgba(0,0,0,0.5);display:flex;justify-content:center;align-items:center}
+.box{background:white;padding:20px;width:90%;max-height:90%;overflow:auto}
 </style>
 </head>
 
@@ -79,93 +51,70 @@ width:90%; max-height:90%; overflow:auto;
 
 <script type="text/babel">
 
-/* ================= SPEECH ================= */
-function useSpeech(){
-const speak=(text,lang,rate)=>{
+/* ===== TRANSLATIONS ===== */
+const T={
+en:{
+title:"KARNATAKA CULINARY MASTERPIECES",
+historyTitle:"Culinary History of Karnataka",
+historyText:"Karnataka cuisine is rich and diverse. Udupi cuisine is known for vegetarian dishes. Coastal regions use coconut and seafood. North Karnataka uses millets and spices. Traditional cooking methods define its uniqueness.",
+search:"Search recipes...",
+scroll:"Wanna Cook early without knowing more? Go below"
+},
+kn:{
+title:"ಕರ್ನಾಟಕದ ಅಡುಗೆ ವೈಭವ",
+historyTitle:"ಕರ್ನಾಟಕದ ಅಡುಗೆ ಇತಿಹಾಸ",
+historyText:"ಕರ್ನಾಟಕದ ಅಡುಗೆ ಪದ್ಧತಿ ಬಹಳ ವೈವಿಧ್ಯಮಯವಾಗಿದೆ. ಉಡುಪಿ ಅಡುಗೆ ಸಸ್ಯಾಹಾರಕ್ಕೆ ಪ್ರಸಿದ್ಧವಾಗಿದೆ. ಕರಾವಳಿ ಭಾಗದಲ್ಲಿ ತೆಂಗಿನಕಾಯಿ ಮತ್ತು ಮೀನು ಹೆಚ್ಚು ಬಳಸುತ್ತಾರೆ. ಉತ್ತರ ಕರ್ನಾಟಕದಲ್ಲಿ ಜೋಳ ಮತ್ತು ಮಸಾಲೆ ಪದಾರ್ಥಗಳು ಬಳಸಲಾಗುತ್ತದೆ.",
+search:"ಪಾಕವಿಧಾನ ಹುಡುಕಿ...",
+scroll:"ಹೆಚ್ಚು ತಿಳಿಯದೆ ಅಡುಗೆ ಮಾಡಬೇಕೆ? ಕೆಳಗೆ ಹೋಗಿ"
+}
+};
+
+/* ===== SPEECH ===== */
+function speak(text,lang,rate){
 window.speechSynthesis.cancel();
-const speech=new SpeechSynthesisUtterance(text);
-const isKannada=/[\u0C80-\u0CFF]/.test(text);
-speech.lang=lang==="kn"?"kn-IN":"en-US";
-speech.rate=rate;
-window.speechSynthesis.speak(speech);
-};
-return{
-speak,
-pause:()=>window.speechSynthesis.pause(),
-resume:()=>window.speechSynthesis.resume(),
-stop:()=>window.speechSynthesis.cancel()
-};
+const s=new SpeechSynthesisUtterance(text);
+s.lang=lang==="kn"?"kn-IN":"en-US";
+s.rate=rate;
+window.speechSynthesis.speak(s);
 }
 
-/* ================= ADMIN ================= */
-const ADMIN={email:"admin@gmail.com",password:"admin123"};
-
-/* ================= APP ================= */
+/* ===== APP ===== */
 function App(){
 
 const [lang,setLang]=React.useState("en");
 const [menu,setMenu]=React.useState(false);
-const [modal,setModal]=React.useState(null);
-
-const [view,setView]=React.useState("user");
-const [isAdmin,setIsAdmin]=React.useState(false);
-
-const [recipes,setRecipes]=React.useState(
-JSON.parse(localStorage.getItem("recipes"))||[]
-);
-
-const [places,setPlaces]=React.useState(
-JSON.parse(localStorage.getItem("places"))||[]
-);
-
-const [users,setUsers]=React.useState(
-JSON.parse(localStorage.getItem("users"))||[]
-);
-
-const [selectedRecipe,setSelectedRecipe]=React.useState(null);
-const [timeLeft,setTimeLeft]=React.useState(0);
-const timerRef=React.useRef(null);
-
-const {speak,pause,resume,stop}=useSpeech();
+const [selected,setSelected]=React.useState(null);
+const [time,setTime]=React.useState(0);
 const [rate,setRate]=React.useState(1);
+
 const historyRef=React.useRef();
+const timerRef=React.useRef();
 
-/* SAVE */
-React.useEffect(()=>localStorage.setItem("recipes",JSON.stringify(recipes)),[recipes]);
-React.useEffect(()=>localStorage.setItem("places",JSON.stringify(places)),[places]);
-React.useEffect(()=>localStorage.setItem("users",JSON.stringify(users)),[users]);
+/* SAMPLE DATA */
+const [recipes,setRecipes]=React.useState([
+{id:1,name:"Bisi Bele Bath",time:2,
+steps:["Cook rice","Add vegetables","Add masala","Mix well"],
+img:"https://source.unsplash.com/300x200/?food",
+vid:"https://www.w3schools.com/html/mov_bbb.mp4"}
+]);
 
-/* LOGIN */
-function handleLogin(){
-const email=document.getElementById("email").value;
-const pass=document.getElementById("pass").value;
-
-if(email===ADMIN.email && pass===ADMIN.password){
-setIsAdmin(true);
-setView("admin");
-alert("Admin Login Success");
-}else{
-alert("User Login (Demo)");
-}
-}
+const [places,setPlaces]=React.useState([
+{name:"Hampi",vid:"https://www.w3schools.com/html/mov_bbb.mp4"}
+]);
 
 /* TIMER */
-function startCooking(minutes){
-let total=minutes*5;
-setTimeLeft(total);
-
+function startCooking(min){
+let t=min*5;
+setTime(t);
 clearInterval(timerRef.current);
 
 timerRef.current=setInterval(()=>{
-total--;
-setTimeLeft(total);
-
-if(total<=0){
+t--;setTime(t);
+if(t<=0){
 clearInterval(timerRef.current);
-
 for(let i=0;i<3;i++){
 setTimeout(()=>{
-const s=new SpeechSynthesisUtterance("Ready to eat");
+let s=new SpeechSynthesisUtterance("Ready to eat");
 window.speechSynthesis.speak(s);
 },i*1500);
 }
@@ -173,90 +122,24 @@ window.speechSynthesis.speak(s);
 },1000);
 }
 
-/* ================= ADMIN VIEW ================= */
-if(view==="admin"){
-return(
-<div style={{padding:"20px"}}>
-<h1>Admin Dashboard</h1>
-<button onClick={()=>setView("user")}>Back</button>
-
-<h2>Add Dish</h2>
-<input id="dn" placeholder="Name"/>
-<input id="dt" placeholder="Time"/>
-<input id="di" placeholder="Image"/>
-<input id="dv" placeholder="Video"/>
-<textarea id="ds" placeholder="Steps comma separated"></textarea>
-
-<button onClick={()=>{
-const d={
-id:Date.now(),
-name:dn.value,
-time:+dt.value,
-image:di.value,
-video:dv.value,
-steps:ds.value.split(",")
-};
-setRecipes([...recipes,d]);
-}}>Add Dish</button>
-
-<h3>Dishes</h3>
-{recipes.map(d=>(
-<div key={d.id}>
-{d.name}
-<button onClick={()=>setRecipes(recipes.filter(x=>x.id!==d.id))}>Delete</button>
-</div>
-))}
-
-<h2>Add Place</h2>
-<input id="pn" placeholder="Name"/>
-<input id="pv" placeholder="Video"/>
-<textarea id="pd" placeholder="Desc"></textarea>
-
-<button onClick={()=>{
-const p={id:Date.now(),name:pn.value,video:pv.value,desc:pd.value};
-setPlaces([...places,p]);
-}}>Add Place</button>
-
-<h3>Places</h3>
-{places.map(p=>(
-<div key={p.id}>
-{p.name}
-<button onClick={()=>setPlaces(places.filter(x=>x.id!==p.id))}>Delete</button>
-</div>
-))}
-
-<h2>Users</h2>
-{users.map((u,i)=>(
-<div key={i}>
-{u.email}
-<button onClick={()=>setUsers(users.filter(x=>x!==u))}>Delete</button>
-</div>
-))}
-</div>
-);
-}
-
-/* ================= USER VIEW ================= */
 return(
 <div>
 
-{/* NAVBAR */}
-<div className="navbar">
+{/* NAV */}
+<div className="nav">
 <div>Karnataka Culinary</div>
 
 <div className="menu">
-<button onClick={()=>setModal("login")}>Login</button>
-<button onClick={()=>setModal("signup")}>Sign Up</button>
 <button onClick={()=>setLang(lang==="en"?"kn":"en")}>
 {lang==="en"?"ಕನ್ನಡಕ್ಕಾಗಿ ಇಲ್ಲಿ ಒತ್ತಿರಿ":"For English click here"}
 </button>
 </div>
 
-<div className="hamburger" onClick={()=>setMenu(true)}>☰</div>
+<div className="ham" onClick={()=>setMenu(true)}>☰</div>
 </div>
 
-{menu && (
-<div className="mobile-menu">
+{menu&&(
+<div className="mobile">
 <button onClick={()=>setMenu(false)}>Close</button>
 </div>
 )}
@@ -264,85 +147,66 @@ return(
 {/* HERO */}
 <div className="hero">
 <video autoPlay muted loop src="https://www.w3schools.com/html/mov_bbb.mp4"/>
-<div className="hero-text">
-{lang==="en"?"KARNATAKA CULINARY MASTERPIECES":"ಕರ್ನಾಟಕ ಅಡುಗೆ ಕಲೆಗಳು"}
-</div>
+<div className="text">{T[lang].title}</div>
 </div>
 
 {/* HISTORY */}
-<section style={{padding:"80px 20px"}}>
-<h2>Culinary History</h2>
+<section>
+<h2>{T[lang].historyTitle}</h2>
+<p ref={historyRef}>{T[lang].historyText}</p>
 
-<p ref={historyRef}>
-Karnataka cuisine is rich and diverse with Udupi, coastal and North Karnataka styles.
-Traditional ingredients and cooking methods define its identity.
-</p>
+<button onClick={()=>speak(historyRef.current.innerText,lang,rate)}>▶</button>
+<button onClick={()=>window.speechSynthesis.pause()}>⏸</button>
+<button onClick={()=>window.speechSynthesis.resume()}>▶</button>
+<button onClick={()=>window.speechSynthesis.cancel()}>⏹</button>
 
-<button onClick={()=>speak(historyRef.current.innerText,lang,rate)}>Play</button>
-<button onClick={pause}>Pause</button>
-<button onClick={resume}>Resume</button>
-<button onClick={stop}>Stop</button>
-
-<br/>
-Speed:
+<br/>Speed:
 <input type="range" min="0.5" max="2" step="0.1"
 value={rate} onChange={e=>setRate(e.target.value)}/>
 </section>
 
 {/* RECIPES */}
-<section style={{padding:"20px"}}>
-<div className="cards">
+<section>
+<input placeholder={T[lang].search}/>
+<div className="grid">
 {recipes.map(r=>(
-<div className="card" key={r.id} onClick={()=>setSelectedRecipe(r)}>
-<img src={r.image || "https://source.unsplash.com/300x200/?food"}/>
-<div>{r.name} - {r.time} mins</div>
+<div className="card" key={r.id} onClick={()=>setSelected(r)}>
+<img src={r.img}/>
+<div>{r.name} - {r.time} min</div>
 </div>
 ))}
 </div>
 </section>
 
 {/* PLACES */}
-<section style={{padding:"20px"}}>
-<div className="cards">
-{places.map(p=>(
-<div className="card" key={p.id}>
-<video autoPlay muted loop src={p.video}/>
+<section>
+<div className="grid">
+{places.map((p,i)=>(
+<div className="card" key={i}>
+<video autoPlay muted loop src={p.vid}/>
 <div>{p.name}</div>
 </div>
 ))}
 </div>
 </section>
 
-{/* RECIPE DETAIL */}
-{selectedRecipe && (
+{/* RECIPE PAGE */}
+{selected&&(
 <div className="modal">
-<div className="modal-content">
+<div className="box">
 
-<h2>{selectedRecipe.name}</h2>
-<video src={selectedRecipe.video} controls width="100%"/>
+<h2>{selected.name}</h2>
+<video src={selected.vid} controls width="100%"/>
 
 <ol>
-{selectedRecipe.steps.map((s,i)=><li key={i}>{s}</li>)}
+{selected.steps.map((s,i)=><li key={i}>{s}</li>)}
 </ol>
 
-<h3>Timer: {timeLeft}</h3>
+<h3>Timer: {time}</h3>
 
-<button onClick={()=>startCooking(selectedRecipe.time)}>Start Cooking</button>
-<button onClick={()=>setSelectedRecipe(null)}>Close</button>
+<button onClick={()=>startCooking(selected.time)}>Start Cooking</button>
+<button onClick={()=>setSelected(null)}>Close</button>
 
-</div>
-</div>
-)}
-
-{/* LOGIN MODAL */}
-{modal && (
-<div className="modal">
-<div className="modal-content">
-<h3>{modal}</h3>
-<input id="email" placeholder="Email"/>
-<input id="pass" type="password" placeholder="Password"/>
-<button onClick={handleLogin}>Login</button>
-<button onClick={()=>setModal(null)}>Close</button>
 </div>
 </div>
 )}
